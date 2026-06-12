@@ -13,7 +13,7 @@ const theme = createTheme({
     primary: { main: '#1565C0' },
     secondary: { main: '#E65100' },
   },
-  typography: { fontFamily: '"Inter", "Roboto", sans-serif' },
+  typography: { fontFamily: '"Poppins", "Roboto", sans-serif' },
 })
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
