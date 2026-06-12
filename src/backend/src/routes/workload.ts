@@ -8,6 +8,7 @@ import {
   PriorityBucket,
 } from '../services/priority'
 import { ApiResponse } from '../lib/apiResponse'
+import { PolicyStatus } from '../constants'
 
 const router = Router()
 
@@ -19,7 +20,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
     const policies = await prisma.policy.findMany({
       where: {
-        status: { notIn: ['renewed', 'lost'] },
+        status: { notIn: [PolicyStatus.RENEWED, PolicyStatus.LOST] },
         client: search
           ? { name: { contains: String(search) } }
           : undefined,
@@ -59,7 +60,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       })
       .filter((p) => {
         if (bucket && p.priorityBucket !== bucket) return false
-        return p.priorityBucket !== 'active'
+        return p.priorityBucket !== PolicyStatus.ACTIVE
       })
       .sort((a, b) => BUCKET_PRIORITY[a.priorityBucket] - BUCKET_PRIORITY[b.priorityBucket])
 

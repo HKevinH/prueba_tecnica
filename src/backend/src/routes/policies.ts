@@ -7,6 +7,7 @@ import {
   CreatePolicyInput, UpdatePolicyInput, CreateActionInput,
 } from '../schemas'
 import { ApiResponse } from '../lib/apiResponse'
+import { PolicyStatus, ActionType as AT } from '../constants'
 
 const router = Router()
 
@@ -81,13 +82,13 @@ router.post('/:id/actions', validate(createActionSchema), async (req: Request, r
         newExpirationDate: newExpirationDate ? new Date(newExpirationDate) : null,
       },
     })
-    if (actionType === 'renovacion' && newExpirationDate) {
+    if (actionType === AT.RENOVACION && newExpirationDate) {
       await prisma.policy.update({
         where: { id: req.params.id },
-        data: { status: 'renewed', expirationDate: new Date(newExpirationDate) },
+        data: { status: PolicyStatus.RENEWED, expirationDate: new Date(newExpirationDate) },
       })
-    } else if (actionType === 'perdida') {
-      await prisma.policy.update({ where: { id: req.params.id }, data: { status: 'lost' } })
+    } else if (actionType === AT.PERDIDA) {
+      await prisma.policy.update({ where: { id: req.params.id }, data: { status: PolicyStatus.LOST } })
     }
     return ApiResponse.created(res, action)
   } catch (err) {

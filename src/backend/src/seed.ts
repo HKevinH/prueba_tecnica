@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { PolicyStatus } from './constants'
 
 const prisma = new PrismaClient()
 
@@ -66,8 +67,8 @@ async function main() {
     prisma.policy.create({ data: { clientId: oscar.id, policyNumber: 'BOL-2025-122', type: 'auto', insurer: 'Bolívar', expirationDate: daysFromToday(90), premium: 1800000 } }),
 
     // RENOVADAS
-    prisma.policy.create({ data: { clientId: patricia.id, policyNumber: 'MAP-2025-055', type: 'auto', insurer: 'Mapfre', expirationDate: daysFromToday(180), premium: 1550000, status: 'renewed' } }),
-    prisma.policy.create({ data: { clientId: andrea.id, policyNumber: 'LIB-2025-099', type: 'hogar', insurer: 'Liberty', expirationDate: daysFromToday(200), premium: 420000, status: 'renewed' } }),
+    prisma.policy.create({ data: { clientId: patricia.id, policyNumber: 'MAP-2025-055', type: 'auto', insurer: 'Mapfre', expirationDate: daysFromToday(180), premium: 1550000, status: PolicyStatus.RENEWED } }),
+    prisma.policy.create({ data: { clientId: andrea.id, policyNumber: 'LIB-2025-099', type: 'hogar', insurer: 'Liberty', expirationDate: daysFromToday(200), premium: 420000, status: PolicyStatus.RENEWED } }),
   ])
 
   // Registrar acciones de gestión en algunas pólizas

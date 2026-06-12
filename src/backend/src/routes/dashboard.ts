@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import prisma from "../lib/prisma";
 import { classifyPolicyPriority, PriorityBucket } from "../services/priority";
 import { ApiResponse } from "../lib/apiResponse";
+import { PolicyStatus } from "../constants";
 
 const router = Router();
 
@@ -22,11 +23,11 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
     };
 
     for (const p of policies) {
-      if (p.status === "renewed") {
+      if (p.status === PolicyStatus.RENEWED) {
         counts.renewed++;
         continue;
       }
-      if (p.status === "lost") {
+      if (p.status === PolicyStatus.LOST) {
         counts.lost++;
         continue;
       }

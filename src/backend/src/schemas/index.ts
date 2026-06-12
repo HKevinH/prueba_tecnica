@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import { ValidationMessages as VM, vm } from './messages'
+import { PolicyStatus, PolicyType, ActionType } from '../constants'
 
-const POLICY_TYPES = ['auto', 'hogar', 'vida', 'soat', 'otro'] as const
-const ACTION_TYPES = ['llamada', 'whatsapp', 'correo', 'nota', 'renovacion', 'perdida'] as const
-const POLICY_STATUSES = ['active', 'renewed', 'lost'] as const
+const POLICY_TYPES = Object.values(PolicyType) as [string, ...string[]]
+const ACTION_TYPES = Object.values(ActionType) as [string, ...string[]]
+const POLICY_STATUSES = Object.values(PolicyStatus) as [string, ...string[]]
 
 export const createClientSchema = z.object({
   name: z.string().min(1, vm(VM.REQUIRED, 'El nombre')),
