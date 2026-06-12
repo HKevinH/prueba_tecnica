@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import prisma from "../lib/prisma";
 import { classifyPolicyPriority, PriorityBucket } from "../services/priority";
+import { ApiResponse } from "../lib/apiResponse";
 
 const router = Router();
 
@@ -33,7 +34,7 @@ router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
       counts[bucket]++;
     }
 
-    res.json({
+    ApiResponse.ok(res, {
       total: policies.length,
       ...counts,
       urgent: counts.expires_today + counts.critical_window,

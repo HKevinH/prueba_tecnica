@@ -7,6 +7,7 @@ import {
   BUCKET_LABEL,
   PriorityBucket,
 } from '../services/priority'
+import { ApiResponse } from '../lib/apiResponse'
 
 const router = Router()
 
@@ -62,7 +63,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       })
       .sort((a, b) => BUCKET_PRIORITY[a.priorityBucket] - BUCKET_PRIORITY[b.priorityBucket])
 
-    res.json(enriched)
+    ApiResponse.ok(res, enriched)
   } catch (err) {
     next(err)
   }

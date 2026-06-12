@@ -3,6 +3,14 @@ import { Client, DashboardStats, Policy, ManagementAction, ActionType } from '..
 
 const api = axios.create({ baseURL: '/api' })
 
+// Unwrap { success: true, data: T } transparently so callers receive T directly
+api.interceptors.response.use((response) => {
+  if (response.data?.success === true) {
+    response.data = response.data.data
+  }
+  return response
+})
+
 export const getDashboard = () => api.get<DashboardStats>('/dashboard').then((r) => r.data)
 
 export const getWorkload = (bucket?: string, search?: string) =>

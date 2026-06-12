@@ -1,10 +1,30 @@
 import { Request, Response, NextFunction } from 'express'
+import { ZodError } from 'zod'
+import { Prisma } from '@prisma/client'
+import { ApiResponse } from '../lib/apiResponse'
 
 export function notFound(req: Request, res: Response) {
-  res.status(404).json({ error: `Ruta no encontrada: ${req.method} ${req.path}` })
+  ApiResponse.notFound(res, `Ruta no encontrada: ${req.method} ${req.path}`)
 }
 
-export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction) {
+  if (err instanceof ZodError) {
+    return ApiResponse.badRequest(res, 'Datos inválidos', err.flatten().fieldErrors as Record<string, string[]>)
+  }
+
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    switch (err.code) {
+      case 'P2025':
+        return ApiResponse.notFound(res, 'El registro no existe o ya fue eliminado')
+      case 'P2002':
+        return ApiResponse.badRequest(res, 'Ya existe un registro con esos datos')
+      case 'P2003':
+        return ApiResponse.badRequest(res, 'El recurso referenciado no existe')
+      default:
+        return ApiResponse.serverError(res, `Error de base de datos: ${err.code}`)
+    }
+  }
+
   console.error(err.stack)
-  res.status(500).json({ error: 'Error interno del servidor', detail: err.message })
+  return ApiResponse.serverError(res)
 }

@@ -1,27 +1,30 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import prisma from '../lib/prisma'
 import { classifyPolicyPriority, getDaysOverdue, BUCKET_LABEL } from '../services/priority'
+import { validate } from '../middleware/validate'
+import {
+  createPolicySchema, updatePolicySchema, createActionSchema,
+  CreatePolicyInput, UpdatePolicyInput, CreateActionInput,
+} from '../schemas'
+import { ApiResponse } from '../lib/apiResponse'
 
 const router = Router()
 
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', validate(createPolicySchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { clientId, policyNumber, type, insurer, expirationDate, premium } = req.body
-    if (!clientId || !insurer || !expirationDate) {
-      return res.status(400).json({ error: 'clientId, insurer y expirationDate son requeridos' })
-    }
+    const { clientId, policyNumber, type, insurer, expirationDate, premium } = req.body as CreatePolicyInput
     const policy = await prisma.policy.create({
       data: {
         clientId,
         policyNumber: policyNumber?.trim() || null,
-        type: type || 'auto',
+        type,
         insurer: insurer.trim(),
         expirationDate: new Date(expirationDate),
-        premium: premium ? Number(premium) : null,
+        premium: premium ?? null,
       },
       include: { client: true },
     })
-    return res.status(201).json(policy)
+    return ApiResponse.created(res, policy)
   } catch (err) {
     return next(err)
   }
@@ -31,15 +34,12 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const policy = await prisma.policy.findUnique({
       where: { id: req.params.id },
-      include: {
-        client: true,
-        actions: { orderBy: { createdAt: 'desc' } },
-      },
+      include: { client: true, actions: { orderBy: { createdAt: 'desc' } } },
     })
-    if (!policy) return res.status(404).json({ error: 'Póliza no encontrada' })
+    if (!policy) return ApiResponse.notFound(res, 'Póliza no encontrada')
 
     const bucket = classifyPolicyPriority(policy.expirationDate)
-    return res.json({
+    return ApiResponse.ok(res, {
       ...policy,
       priorityBucket: bucket,
       priorityLabel: BUCKET_LABEL[bucket],
@@ -50,9 +50,9 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   }
 })
 
-router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', validate(updatePolicySchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { policyNumber, type, insurer, expirationDate, premium, status } = req.body
+    const { policyNumber, type, insurer, expirationDate, premium, status } = req.body as UpdatePolicyInput
     const policy = await prisma.policy.update({
       where: { id: req.params.id },
       data: {
@@ -60,27 +60,19 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
         ...(type !== undefined && { type }),
         ...(insurer !== undefined && { insurer: insurer.trim() }),
         ...(expirationDate !== undefined && { expirationDate: new Date(expirationDate) }),
-        ...(premium !== undefined && { premium: premium ? Number(premium) : null }),
+        ...(premium !== undefined && { premium: premium ?? null }),
         ...(status !== undefined && { status }),
       },
     })
-    return res.json(policy)
+    return ApiResponse.ok(res, policy)
   } catch (err) {
     return next(err)
   }
 })
 
-// Register a management action (contact attempt, renewal, etc.)
-router.post('/:id/actions', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/actions', validate(createActionSchema), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { actionType, notes, newExpirationDate } = req.body
-    if (!actionType) return res.status(400).json({ error: 'actionType es requerido' })
-
-    const validTypes = ['llamada', 'whatsapp', 'correo', 'nota', 'renovacion', 'perdida']
-    if (!validTypes.includes(actionType)) {
-      return res.status(400).json({ error: `actionType debe ser uno de: ${validTypes.join(', ')}` })
-    }
-
+    const { actionType, notes, newExpirationDate } = req.body as CreateActionInput
     const action = await prisma.managementAction.create({
       data: {
         policyId: req.params.id,
@@ -89,21 +81,15 @@ router.post('/:id/actions', async (req: Request, res: Response, next: NextFuncti
         newExpirationDate: newExpirationDate ? new Date(newExpirationDate) : null,
       },
     })
-
-    // If renewal or marked as lost, update policy status accordingly
     if (actionType === 'renovacion' && newExpirationDate) {
       await prisma.policy.update({
         where: { id: req.params.id },
         data: { status: 'renewed', expirationDate: new Date(newExpirationDate) },
       })
     } else if (actionType === 'perdida') {
-      await prisma.policy.update({
-        where: { id: req.params.id },
-        data: { status: 'lost' },
-      })
+      await prisma.policy.update({ where: { id: req.params.id }, data: { status: 'lost' } })
     }
-
-    return res.status(201).json(action)
+    return ApiResponse.created(res, action)
   } catch (err) {
     return next(err)
   }
@@ -115,7 +101,7 @@ router.get('/:id/actions', async (req: Request, res: Response, next: NextFunctio
       where: { policyId: req.params.id },
       orderBy: { createdAt: 'desc' },
     })
-    return res.json(actions)
+    return ApiResponse.ok(res, actions)
   } catch (err) {
     return next(err)
   }
