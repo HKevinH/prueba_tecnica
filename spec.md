@@ -2,7 +2,7 @@
 
 ## Cómo entendí el problema
 
-María tiene un problema de gestión de cartera, no de cotización. Su dolor no es calcular primas — es saber **qué clientes necesita llamar hoy** y poder registrar que ya los llamó.
+María tiene un problema de gestión de cartera, no de cotización. Su dolor no es calcular primas — es saber qué clientes necesita llamar hoy y poder registrar que ya los llamó.
 
 El riesgo real del negocio es la **ventana de 30 días post-vencimiento**. Una póliza vencida hace 5 días no es lo mismo que una vencida hace 35. En el primer caso María puede renovar sin perder al cliente; en el segundo entra a competir en igualdad de condiciones con cualquier intermediario. Este es el insight más importante del enunciado, y organicé toda la lógica alrededor de él.
 
