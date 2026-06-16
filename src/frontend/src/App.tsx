@@ -21,6 +21,7 @@ const TABS = [
   { value: 'critical_window', label: 'Ventana crítica' },
   { value: 'expiring_soon', label: 'Por vencer' },
   { value: 'outside_window', label: 'Fuera de ventana' },
+  { value: 'renewed', label: 'Renovadas' },
 ]
 
 export default function App() {

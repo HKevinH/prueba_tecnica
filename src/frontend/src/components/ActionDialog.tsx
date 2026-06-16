@@ -3,7 +3,7 @@ import {
   Button, TextField, Select, MenuItem, FormControl,
   InputLabel, Alert, Box, Typography,
 } from '@mui/material'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { registerAction } from '../api/client'
 import { Policy, ActionType, ACTION_LABELS } from '../types'
@@ -20,6 +20,14 @@ export default function ActionDialog({ policy, onClose }: Props) {
   const [notes, setNotes] = useState('')
   const [newExpirationDate, setNewExpirationDate] = useState('')
   const qc = useQueryClient()
+
+  useEffect(() => {
+    if (policy) {
+      setActionType((policy as any)._openRenewal ? 'renovacion' : 'llamada')
+      setNotes('')
+      setNewExpirationDate('')
+    }
+  }, [policy])
 
   const mutation = useMutation({
     mutationFn: () =>

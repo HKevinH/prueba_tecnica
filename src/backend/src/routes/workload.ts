@@ -17,10 +17,13 @@ const router = Router()
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { bucket, search } = req.query
+    const isRenewed = bucket === PolicyStatus.RENEWED
 
     const policies = await prisma.policy.findMany({
       where: {
-        status: { notIn: [PolicyStatus.RENEWED, PolicyStatus.LOST] },
+        status: isRenewed
+          ? PolicyStatus.RENEWED
+          : { notIn: [PolicyStatus.RENEWED, PolicyStatus.LOST] },
         client: search
           ? { name: { contains: String(search) } }
           : undefined,
@@ -59,8 +62,9 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         }
       })
       .filter((p) => {
+        if (isRenewed) return true
         if (bucket && p.priorityBucket !== bucket) return false
-        return p.priorityBucket !== PolicyStatus.ACTIVE
+        return p.priorityBucket !== 'active'
       })
       .sort((a, b) => BUCKET_PRIORITY[a.priorityBucket] - BUCKET_PRIORITY[b.priorityBucket])
 
