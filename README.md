@@ -86,4 +86,4 @@ Una aclaración en el enunciado como "unitarios que validen la regla de negocio"
 
 ## Video
 
-[Próximamente — link a Loom]
+[![Demo Cartera de Pólizas](https://drive.google.com/thumbnail?id=1YnWunA1Sm_j0sYVTW22dlm_CdUMQfsye&sz=w1280)](https://drive.google.com/file/d/1YnWunA1Sm_j0sYVTW22dlm_CdUMQfsye/view?usp=sharing)
